@@ -21,6 +21,7 @@ import android.graphics.Matrix.ScaleToFit;
 import android.graphics.RectF;
 import android.graphics.drawable.Drawable;
 import android.support.v4.view.MotionEventCompat;
+import android.util.DisplayMetrics;
 import android.view.GestureDetector;
 import android.view.MotionEvent;
 import android.view.View;
@@ -40,7 +41,7 @@ import android.widget.OverScroller;
 public class PhotoViewAttacher implements View.OnTouchListener,
         View.OnLayoutChangeListener {
 
-    private static float DEFAULT_MAX_SCALE = 3.0f;
+    private static float DEFAULT_MAX_SCALE = 2.0f;
     private static float DEFAULT_MID_SCALE = 1.75f;
     private static float DEFAULT_MIN_SCALE = 1.0f;
     private static int DEFAULT_ZOOM_DURATION = 200;
@@ -91,9 +92,11 @@ public class PhotoViewAttacher implements View.OnTouchListener,
     private boolean mZoomEnabled = true;
     private ScaleType mScaleType = ScaleType.FIT_CENTER;
 
-    private OnGestureListener onGestureListener = new OnGestureListener() {
+    private OnGestureListener onGestureListener = new OnGestureListener()
+    {
         @Override
-        public void onDrag(float dx, float dy) {
+        public void onDrag(float dx, float dy)
+        {
             if (mScaleDragDetector.isScaling()) {
                 return; // Do not drag if we are already scaling
             }
@@ -149,7 +152,7 @@ public class PhotoViewAttacher implements View.OnTouchListener,
         }
     };
 
-    public PhotoViewAttacher(ImageView imageView) {
+    public PhotoViewAttacher(final ImageView imageView) {
         mImageView = imageView;
         imageView.setOnTouchListener(this);
         imageView.addOnLayoutChangeListener(this);
@@ -194,7 +197,8 @@ public class PhotoViewAttacher implements View.OnTouchListener,
 
         mGestureDetector.setOnDoubleTapListener(new GestureDetector.OnDoubleTapListener() {
             @Override
-            public boolean onSingleTapConfirmed(MotionEvent e) {
+            public boolean onSingleTapConfirmed(MotionEvent e)
+            {
                 if (mOnClickListener != null) {
                     mOnClickListener.onClick(mImageView);
                 }
@@ -233,16 +237,50 @@ public class PhotoViewAttacher implements View.OnTouchListener,
             public boolean onDoubleTap(MotionEvent ev) {
                 try {
                     float scale = getScale();
+
+                    //scale on the base of display
+                    float imageHeight = getDisplayRect().height();
+                    float maxScale  = (getScreenHeight(imageView.getContext())-getStatusBarHeight(imageView.getContext()))/imageHeight;
+
+                    setMaximumScale(maxScale);
                     float x = ev.getX();
                     float y = ev.getY();
 
-                    if (scale < getMediumScale()) {
-                        setScale(getMediumScale(), x, y, true);
-                    } else if (scale >= getMediumScale() && scale < getMaximumScale()) {
+                    //TODO Modificato da Raffaella
+                    if (scale < getMaximumScale())
+                    {
                         setScale(getMaximumScale(), x, y, true);
-                    } else {
+
+                    }
+
+//                    else if (scale >= getMediumScale() && scale < getMaximumScale())
+//                    {
+//                        setScale(getMaximumScale(), x, y, true);
+//
+//                    }
+
+                    else
+                    {
                         setScale(getMinimumScale(), x, y, true);
                     }
+
+
+//                    if (scale < getMediumScale())
+//                    {
+//                        setScale(getMediumScale(), x, y, true);
+//
+//                    }
+//
+//                    else if (scale >= getMediumScale() && scale < getMaximumScale())
+//                    {
+//                        setScale(getMaximumScale(), x, y, true);
+//
+//                    }
+//
+//                    else
+//                    {
+//                        setScale(getMinimumScale(), x, y, true);
+//                    }
                 } catch (ArrayIndexOutOfBoundsException e) {
                     // Can sometimes happen when getX() and getY() is called
                 }
@@ -256,6 +294,22 @@ public class PhotoViewAttacher implements View.OnTouchListener,
                 return false;
             }
         });
+    }
+
+
+    public static int getStatusBarHeight(Context context) {
+        int result = 0;
+        int resourceId = context.getResources().getIdentifier("status_bar_height", "dimen", "android");
+        if (resourceId > 0) {
+            result = context.getResources().getDimensionPixelSize(resourceId);
+        }
+        return result;
+    }
+
+    public  float getScreenHeight(Context context)
+    {
+        DisplayMetrics metrics = context.getResources().getDisplayMetrics();
+        return metrics.heightPixels;
     }
 
     public void setOnDoubleTapListener(GestureDetector.OnDoubleTapListener newOnDoubleTapListener) {
@@ -468,6 +522,8 @@ public class PhotoViewAttacher implements View.OnTouchListener,
                 (mImageView.getBottom()) / 2,
                 animate);
     }
+
+
 
     public void setScale(float scale, float focalX, float focalY,
                          boolean animate) {

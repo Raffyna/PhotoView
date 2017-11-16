@@ -40,7 +40,8 @@ class CustomGestureDetector {
     private final float mMinimumVelocity;
     private OnGestureListener mListener;
 
-    CustomGestureDetector(Context context, OnGestureListener listener) {
+    CustomGestureDetector(Context context, OnGestureListener listener)
+    {
         final ViewConfiguration configuration = ViewConfiguration
                 .get(context);
         mMinimumVelocity = configuration.getScaledMinimumFlingVelocity();
@@ -108,7 +109,8 @@ class CustomGestureDetector {
         }
     }
 
-    private boolean processTouchEvent(MotionEvent ev) {
+    private boolean processTouchEvent(MotionEvent ev)
+    {
         final int action = ev.getAction();
         switch (action & MotionEvent.ACTION_MASK) {
             case MotionEvent.ACTION_DOWN:
